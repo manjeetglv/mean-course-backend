@@ -1,4 +1,4 @@
-const mongoose  = require('mongoose');
+const mongoose = require('mongoose');
 
 // Creating schema with mongoose.
 // This part is just schema definiton 

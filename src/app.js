@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
-const postRoutes = require('./routes/posts');
+const postRoutes = require('./routes/postsRoutes');
 
 const app = express();
 
@@ -31,6 +31,7 @@ function allowCrossDomain() {
 app.use(allowCrossDomain());
 // app.use(postRoutes);
 app.use('/api/posts', postRoutes);
+
 
 
 // Exporting the app, and then import in server.js

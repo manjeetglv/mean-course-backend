@@ -20,7 +20,14 @@
   "dependencies": {
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
-    "mongoose": "^5.4.3"
+    "mongoose": "^5.4.3",
+    "multer": "^1.4.1"
+  },
+  "dependenciesComments": {
+    "body-parser": "It's a middleware, extracts the body from the reqest and provide req.body property.",
+    "express": "A framework made on node, made for node.",
+    "mongoose": "A ODM for mongodb, similar to Hibernate in Java",
+    "multer": "It's a middleware, extacts the input like bytes, upload file data from request"
   },
   "devDependencies": {
     "@types/mongoose": "^5.3.7",

@@ -33,13 +33,13 @@ const storage = multer.diskStorage({
 // Using the multer as a new middleware to extract the files.
 // .single('image') means it will try to extract one file on image property of the request object.
 router.post('', multer({storage: storage}).single('image'), (req, res, next) => {
-
+    req.body.imagePath = getImageUrl(req);
     if(req.body._id === null){
         req.body._id = undefined;
     }
     const post = new Post(req.body);
-    post.save().then((result) => {
-        res.status(201).send(result);
+    post.save().then((createdPost) => {
+        res.status(201).send(createdPost);
     });
 });
 
@@ -54,36 +54,67 @@ router.get('/:id', (req, res) => {
     });
 });
 
-// GET
+
+// GET - All posts 
 router.get('',(req, res) => {
-    Post.find()
-    .then((documents => {
-        // console.log('Documents: ', documents);
-        res.status(200).json(documents);
-    }));
+    const pageSize = +req.query.pageSize;
+    const currentPage = +req.query.currentPage;
+    let fetchedPosts;
+
+
+    const getPostsQuery = Post.find();
+    if(pageSize && currentPage) {
+        getPostsQuery
+        .skip(pageSize * (currentPage - 1))
+        .limit(pageSize);
+    }
+
+    // Query will not be executed untill then is called.
+    getPostsQuery.then((documents => {
+        this.fetchedPosts = documents;
+        return Post.count();
+        
+    })).then(totalPosts => {
+        res.status(200).json({
+            posts: this.fetchedPosts,
+            totalPosts: totalPosts 
+        });
+    });
     
 });
 
+
 // DELETE
 router.delete('/:id',(req, res) => {
-    console.log('Id: ',req.params.id);
-    Post.deleteOne({_id: req.params.id}).then(result => {
-        // console.log(result); 
-        res.status(200).json({message: result});
+    Post.deleteOne({_id: req.params.id}).then(createdPost => {
+        // console.log(createdPost); 
+        res.status(200).json({message: createdPost});
     });
     
 });
 
 // UPDATE
-router.put('/:id', (req, res, next) => {
-    const postId = req.body._id;
+router.put('/:id', multer({storage: storage}).single('image'), (req, res, next) => {
+    const postId = req.params.id;
     const post = req.body;
+    
+    if(req.file){
+        // console.log('------', post);
+       post.imagePath =  getImageUrl(req);
+    } 
 
-    Post.updateOne({_id: postId}, post).then( result => {
-        // console.log(result);
-        res.status(200).json(result);
+    console.log('----Post Id ', postId);
+    Post.updateOne({_id: postId}, post).then( createdPost => {
+        // console.log(createdPost);
+        res.status(200).json(createdPost);
     });
 });
 
 
 module.exports = router;
+
+function getImageUrl(req) {
+    const url = req.protocol + '://' + req.get('host');
+    const finalUrl = url + '/images/' + req.file.filename;
+    return finalUrl;
+}

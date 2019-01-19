@@ -1,8 +1,10 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const path = require('path');
 
 const postRoutes = require('./routes/postsRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
@@ -18,6 +20,7 @@ mongoose.connect('mongodb+srv://mongodb:kEcgSRxg0puyBsRz@meancourse-app-6a2je.mo
 // Body parser;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
+app.use('/images', express.static(path.join('images')));
 
 function allowCrossDomain() {
     return function (req, res, next) {
@@ -31,6 +34,7 @@ function allowCrossDomain() {
 app.use(allowCrossDomain());
 // app.use(postRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/user', userRoutes);
 
 
 

@@ -3,6 +3,8 @@ const express = require("express");
 const router = express.Router();
 const Post = require('../model/post.model');
 const multer = require('multer');
+const checkAuth = require('../middleware/check-auth');
+
 
 const MIME_TYPE_MAP = {
     'image/png': 'png',
@@ -26,21 +28,6 @@ const storage = multer.diskStorage({
         const ext = MIME_TYPE_MAP[file.mimetype];
         cb(null, name + '-' + Date.now() + '.' + ext);
     }
-});
-
-
-// POST
-// Using the multer as a new middleware to extract the files.
-// .single('image') means it will try to extract one file on image property of the request object.
-router.post('', multer({storage: storage}).single('image'), (req, res, next) => {
-    req.body.imagePath = getImageUrl(req);
-    if(req.body._id === null){
-        req.body._id = undefined;
-    }
-    const post = new Post(req.body);
-    post.save().then((createdPost) => {
-        res.status(201).send(createdPost);
-    });
 });
 
 // GET - Single post
@@ -84,17 +71,23 @@ router.get('',(req, res) => {
 });
 
 
-// DELETE
-router.delete('/:id',(req, res) => {
-    Post.deleteOne({_id: req.params.id}).then(createdPost => {
-        // console.log(createdPost); 
-        res.status(200).json({message: createdPost});
+// POST
+// Using the multer as a new middleware to extract the files.
+// .single('image') means it will try to extract one file on image property of the request object.
+router.post('', checkAuth, multer({storage: storage}).single('image'), (req, res, next) => {
+    req.body.imagePath = getImageUrl(req);
+    if(req.body._id === null){
+        req.body._id = undefined;
+    }
+    const post = new Post(req.body);
+    post.save().then((createdPost) => {
+        res.status(201).send(createdPost);
     });
-    
 });
 
+
 // UPDATE
-router.put('/:id', multer({storage: storage}).single('image'), (req, res, next) => {
+router.put('/:id', checkAuth, multer({storage: storage}).single('image'), (req, res, next) => {
     const postId = req.params.id;
     const post = req.body;
     
@@ -110,11 +103,20 @@ router.put('/:id', multer({storage: storage}).single('image'), (req, res, next) 
     });
 });
 
+// DELETE
+router.delete('/:id', checkAuth, (req, res) => {
+    Post.deleteOne({_id: req.params.id}).then(createdPost => {
+        // console.log(createdPost); 
+        res.status(200).json({message: createdPost});
+    });
+    
+});
 
-module.exports = router;
 
 function getImageUrl(req) {
     const url = req.protocol + '://' + req.get('host');
     const finalUrl = url + '/images/' + req.file.filename;
     return finalUrl;
 }
+
+module.exports = router;

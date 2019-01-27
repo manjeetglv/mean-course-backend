@@ -1,9 +1,10 @@
 const express = require("express");
-
-const router = express.Router();
-const Post = require('../model/post.model');
 const multer = require('multer');
 const checkAuth = require('../middleware/check-auth');
+
+const router = express.Router();
+const postsController = require('../controllers/postsController');
+
 
 
 const MIME_TYPE_MAP = {
@@ -12,7 +13,9 @@ const MIME_TYPE_MAP = {
     'image/jpg': 'jpg'
 }
 
-// Configure multer to store data.
+/** 
+ *  Configure multer to store data.
+ */
 const storage = multer.diskStorage({
     // destination is the function which will be executed whenever multer tries to save the file.
     destination: (req, file, cb) => {
@@ -30,93 +33,40 @@ const storage = multer.diskStorage({
     }
 });
 
-// GET - Single post
-router.get('/:id', (req, res) => {
-    Post.findById(req.params.id).then(post => {
-        if(post){
-            res.status(200).json(post);
-        }else{
-            res.status(404).json("post not found");
-        }
-    });
-});
+/**
+ * GET - Single post
+ */
+router.get('/:id', postsController.getSinglePost);
 
 
-// GET - All posts 
-router.get('',(req, res) => {
-    const pageSize = +req.query.pageSize;
-    const currentPage = +req.query.currentPage;
-    let fetchedPosts;
+/**
+ *  GET - All posts 
+ */ 
+router.get('', postsController.getAllPosts);
 
 
-    const getPostsQuery = Post.find();
-    if(pageSize && currentPage) {
-        getPostsQuery
-        .skip(pageSize * (currentPage - 1))
-        .limit(pageSize);
-    }
-
-    // Query will not be executed untill then is called.
-    getPostsQuery.then((documents => {
-        this.fetchedPosts = documents;
-        return Post.count();
-        
-    })).then(totalPosts => {
-        res.status(200).json({
-            posts: this.fetchedPosts,
-            totalPosts: totalPosts 
-        });
-    });
-    
-});
+/**
+ *  POST
+ *  Using the multer as a new middleware to extract the files.
+ *  .single('image') means it will try to extract one file on image property of the request object.
+ */
+router.post(
+    '',
+    checkAuth, 
+    multer({storage: storage}).single('image'), 
+    postsController.addPost);
 
 
-// POST
-// Using the multer as a new middleware to extract the files.
-// .single('image') means it will try to extract one file on image property of the request object.
-router.post('', checkAuth, multer({storage: storage}).single('image'), (req, res, next) => {
-    req.body.imagePath = getImageUrl(req);
-    if(req.body._id === null){
-        req.body._id = undefined;
-    }
-    const post = new Post(req.body);
-    post.save().then((createdPost) => {
-        res.status(201).send(createdPost);
-    });
-});
+/**
+ * UPDATE
+ */ 
+router.put( '/:id', checkAuth, multer({storage: storage}).single('image'), 
+    postsController.updatePost);
 
+/**
+ * DELETE
+ */ 
+router.delete('/:id', checkAuth, postsController.deletePost);
 
-// UPDATE
-router.put('/:id', checkAuth, multer({storage: storage}).single('image'), (req, res, next) => {
-    const postId = req.params.id;
-    const post = req.body;
-    
-    if(req.file){
-        // console.log('------', post);
-       post.imagePath =  getImageUrl(req);
-    } 
-
-    console.log('----Post Id ', postId);
-    Post.updateOne({_id: postId}, post).then( createdPost => {
-        // console.log(createdPost);
-        res.status(200).json(createdPost);
-    });
-});
-
-// DELETE
-router.delete('/:id', checkAuth, (req, res) => {
-    Post.deleteOne({_id: req.params.id}).then(createdPost => {
-        // console.log(createdPost); 
-        res.status(200).json({message: createdPost});
-    });
-    
-});
-
-
-function getImageUrl(req) {
-    const url = req.protocol + '://' + req.get('host');
-    const finalUrl = url + '/images/' + req.file.filename;
-    return finalUrl;
-}
 
 module.exports = router;

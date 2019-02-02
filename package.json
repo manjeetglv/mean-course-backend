@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon ./server.js",
+    "start": "nodemon -r dotenv-safe/config ./server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,8 +18,9 @@
   },
   "homepage": "https://github.com/manjeetglv/mean-course-backend#readme",
   "dependencies": {
-    "bcrypt": "^3.0.3",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
+    "dotenv-safe": "^6.1.0",
     "express": "^4.16.4",
     "jsonwebtoken": "^8.4.0",
     "mongoose": "^5.4.3",
@@ -30,6 +31,7 @@
     "bcrypt": "This is used to encypt the password before saving to db",
     "body-parser": "It's a middleware, extracts the body from the reqest and provide req.body property.",
     "express": "A framework made on node, made for node.",
+    "dotenv-safe": "This is added create global variables in applicaiton. It add all the variable defined in .env file to process.env. It is similar to dotenv but it use .env.example file as well",
     "jsonwebtoken": "This is used by login funcitonality to create the authentication token",
     "mongoose": "A ODM for mongodb, similar to Hibernate in Java",
     "mongoose-unique-validator": "This is used by mongoose to incorporate the unique field in schema",

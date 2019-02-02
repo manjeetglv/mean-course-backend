@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const User = require('../model/user.model');
@@ -44,9 +44,7 @@ exports.userLogin = (req, res, next) => {
             throw Error('User password is invalid');
         }
         // If User is Valid create a login token and send back the token to front end.
-        const token = jwt.sign({email: fetchedUser.email, userId: fetchedUser._id}, 
-            'secret_this_should_be_longer', 
-            {expiresIn: '1h'});
+        const token = jwt.sign({email: fetchedUser.email, userId: fetchedUser._id}, process.env.JWT_KEY, {expiresIn: '1h'});
 
             res.status(200).json({
                 token: token,

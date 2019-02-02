@@ -79,7 +79,7 @@ exports.updatePost = (req, res, next) => {
 
     // Add creator in query to restrict unauthorized user from modifying data
     Post.updateOne({_id: postId, creator: req.userData.userId}, post).then( result => {
-        if (result.nModified > 0) {
+        if (result.n > 0) {
             res.status(200).json({message: 'Updated Successfully'});
         } else {
             res.status(401).json({message: 'Not Authorized'});
